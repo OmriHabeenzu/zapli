@@ -207,7 +207,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);

@@ -14,7 +14,7 @@
   --card: #0F1929;
 }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: auto; }
 
 body {
   background: var(--bg);
