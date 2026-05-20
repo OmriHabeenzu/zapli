@@ -37,7 +37,7 @@ const useTypewriter = (text: string, speed = 22) => {
       else { clearInterval(id); }
     }, speed);
     return () => clearInterval(id);
-  }, [text]);
+  }, [text, speed]);
   return displayed;
 };
 
