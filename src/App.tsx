@@ -110,6 +110,14 @@ const HeroSection: React.FC<{ scrollProgress: number }> = ({ scrollProgress }) =
           </div>
         </div>
       </div>
+      <div className="scroll-cta" style={{ opacity: Math.max(1 - scrollProgress * 6, 0) }}>
+        <span className="scroll-cta-text">Scroll to begin the journey</span>
+        <div className="scroll-chevrons">
+          <div className="chevron" />
+          <div className="chevron" />
+          <div className="chevron" />
+        </div>
+      </div>
       <div className="hero-fade" style={{ opacity: Math.min((scrollProgress - 0.6) * 3, 1) }} />
     </div>
   );
@@ -285,7 +293,7 @@ function App() {
       <div className={`chat-wrapper ${showChat ? 'visible' : ''}`}>
         <ChatMessages messages={messages} onSuggest={handleSuggest} />
       </div>
-      <form onSubmit={handleSubmit} className="chat-input-form">
+      <form onSubmit={handleSubmit} className={`chat-input-form${showChat ? ' form-visible' : ''}`}>
         <div className="input-wrapper">
           <input ref={inputRef} type="text" value={input} onChange={e => setInput(e.target.value)}
             placeholder="Search anything..." className="chat-input" disabled={isLoading} />
