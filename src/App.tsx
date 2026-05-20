@@ -15,7 +15,31 @@ interface Message {
   content: string;
   results?: SearchResult[];
   loading?: boolean;
+  status?: string;
 }
+
+const SUGGESTIONS = [
+  'Latest AI breakthroughs',
+  'How does the James Webb telescope work?',
+  'Best React patterns 2025',
+  'SpaceX Starship updates',
+];
+
+const WELCOME = "Hello! I'm Zapli — your AI-powered search companion. Ask me anything and I'll search the web for real-time answers.";
+
+const useTypewriter = (text: string, speed = 22) => {
+  const [displayed, setDisplayed] = useState('');
+  useEffect(() => {
+    setDisplayed('');
+    let i = 0;
+    const id = setInterval(() => {
+      if (i < text.length) { setDisplayed(text.slice(0, ++i)); }
+      else { clearInterval(id); }
+    }, speed);
+    return () => clearInterval(id);
+  }, [text]);
+  return displayed;
+};
 
 const HeroSection: React.FC<{ scrollProgress: number }> = ({ scrollProgress }) => {
   const phase1 = Math.min(scrollProgress / 0.25, 1);
@@ -91,49 +115,16 @@ const HeroSection: React.FC<{ scrollProgress: number }> = ({ scrollProgress }) =
   );
 };
 
-const ChatSection: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([{
-    id: '0', role: 'assistant',
-    content: "Hello! I'm Zapli — your AI-powered search companion. Ask me anything and I'll search the web for real-time answers.",
-  }]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+const ChatMessages: React.FC<{ messages: Message[]; onSuggest: (s: string) => void }> = ({ messages, onSuggest }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const welcomeTyped = useTypewriter(WELCOME);
 
   useEffect(() => {
     if (messages.length > 1) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
-    const query = input.trim();
-    setInput('');
-    setIsLoading(true);
-    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: query };
-    const loadingMsg: Message = { id: (Date.now() + 1).toString(), role: 'assistant', content: '', loading: true };
-    setMessages(prev => [...prev, userMsg, loadingMsg]);
-    try {
-      const response = await axios.post('https://api.tavily.com/search', {
-        api_key: process.env.REACT_APP_TAVILY_API_KEY,
-        query, search_depth: 'basic', max_results: 5, include_answer: true,
-      }, { headers: { 'Content-Type': 'application/json' } });
-      const data = response.data;
-      setMessages(prev => [...prev.filter(m => !m.loading), {
-        id: (Date.now() + 2).toString(), role: 'assistant',
-        content: data.answer || 'Here are the results I found:',
-        results: data.results || [],
-      }]);
-    } catch (error: any) {
-      setMessages(prev => [...prev.filter(m => !m.loading), {
-        id: (Date.now() + 3).toString(), role: 'assistant',
-        content: `Search error: ${error.response?.data?.message || error.message}. Please check your API key.`,
-      }]);
-    } finally {
-      setIsLoading(false);
-      inputRef.current?.focus();
-    }
+  const getHostname = (url: string) => {
+    try { return new URL(url).hostname; } catch { return url; }
   };
 
   return (
@@ -143,24 +134,45 @@ const ChatSection: React.FC = () => {
         <span className="chat-subtitle">AI-Powered Web Search</span>
       </div>
       <div className="messages-container">
-        {messages.map((msg) => (
+        {messages.map((msg, msgIdx) => (
           <div key={msg.id} className={`message message-${msg.role}`}>
             {msg.role === 'assistant' && <div className="assistant-avatar"><div className="avatar-orb" /></div>}
             <div className="message-content">
               {msg.loading ? (
-                <div className="loading-dots"><span /><span /><span /></div>
+                <div className="loading-state">
+                  <div className="loading-dots"><span /><span /><span /></div>
+                  {msg.status && <span className="loading-status">{msg.status}</span>}
+                </div>
               ) : (
                 <>
-                  <p className="message-text">{msg.content}</p>
+                  <p className="message-text">
+                    {msgIdx === 0 && messages.length === 1 ? welcomeTyped : msg.content}
+                    {msgIdx === 0 && messages.length === 1 && welcomeTyped.length < msg.content.length && (
+                      <span className="cursor">|</span>
+                    )}
+                  </p>
+                  {msgIdx === 0 && messages.length === 1 && welcomeTyped === msg.content && (
+                    <div className="suggestions">
+                      {SUGGESTIONS.map((s, i) => (
+                        <button key={i} className="suggestion-chip" onClick={() => onSuggest(s)}>{s}</button>
+                      ))}
+                    </div>
+                  )}
                   {msg.results && msg.results.length > 0 && (
                     <div className="search-results">
                       <div className="results-label"><span className="mono">{'// '}{msg.results.length} sources found</span></div>
                       {msg.results.map((result, i) => (
-                        <a key={i} href={result.url} target="_blank" rel="noopener noreferrer" className="result-card">
-                          <div className="result-num">{i + 1}</div>
+                        <a key={i} href={result.url} target="_blank" rel="noopener noreferrer"
+                          className="result-card" style={{ animationDelay: `${i * 80}ms` }}>
+                          <img
+                            className="result-favicon"
+                            src={`https://www.google.com/s2/favicons?domain=${getHostname(result.url)}&sz=16`}
+                            alt=""
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
                           <div className="result-body">
                             <div className="result-title">{result.title}</div>
-                            <div className="result-url">{(() => { try { return new URL(result.url).hostname; } catch { return result.url; } })()}</div>
+                            <div className="result-url">{getHostname(result.url)}</div>
                             <div className="result-snippet">{result.content.slice(0, 150)}...</div>
                           </div>
                         </a>
@@ -174,36 +186,25 @@ const ChatSection: React.FC = () => {
         ))}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSubmit} className="chat-input-form">
-        <div className="input-wrapper">
-          <input ref={inputRef} type="text" value={input} onChange={e => setInput(e.target.value)}
-            placeholder="Search anything..." className="chat-input" disabled={isLoading} />
-          <button type="submit" className={`send-button ${isLoading ? 'loading' : ''}`} disabled={isLoading || !input.trim()}>
-            {isLoading ? <div className="spinner" /> : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            )}
-          </button>
-        </div>
-        <p className="input-hint">Powered by Tavily Search API · Real-time web results</p>
-      </form>
     </div>
   );
 };
 
 function App() {
+  const [messages, setMessages] = useState<Message[]>([{ id: '0', role: 'assistant', content: WELCOME }]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showChat, setShowChat] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleScroll = useCallback(() => {
     const heroEl = heroRef.current;
     if (!heroEl) return;
     const progress = Math.min(window.scrollY / heroEl.offsetHeight, 1);
     setScrollProgress(progress);
-    setShowChat(progress > 0.85);
+    setShowChat(progress > 0.65);
   }, []);
 
   useEffect(() => {
@@ -213,12 +214,92 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
+  const runSearch = useCallback(async (query: string) => {
+    if (!query || isLoading) return;
+    setIsLoading(true);
+
+    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: query };
+    const loadingMsg: Message = { id: (Date.now() + 1).toString(), role: 'assistant', content: '', loading: true, status: 'Searching the web...' };
+    setMessages(prev => [...prev, userMsg, loadingMsg]);
+
+    const t1 = setTimeout(() => {
+      setMessages(prev => prev.map(m => m.loading ? { ...m, status: 'Analysing results...' } : m));
+    }, 1200);
+
+    try {
+      const response = await axios.post('https://api.tavily.com/search', {
+        api_key: process.env.REACT_APP_TAVILY_API_KEY,
+        query, search_depth: 'basic', max_results: 5, include_answer: true,
+      }, { headers: { 'Content-Type': 'application/json' } });
+
+      clearTimeout(t1);
+      setMessages(prev => prev.map(m => m.loading ? { ...m, status: 'Summarising...' } : m));
+      await new Promise(r => setTimeout(r, 450));
+
+      const data = response.data;
+      setMessages(prev => [...prev.filter(m => !m.loading), {
+        id: (Date.now() + 2).toString(), role: 'assistant',
+        content: data.answer || 'Here are the results I found:',
+        results: data.results || [],
+      }]);
+    } catch (error: any) {
+      clearTimeout(t1);
+      setMessages(prev => [...prev.filter(m => !m.loading), {
+        id: (Date.now() + 3).toString(), role: 'assistant',
+        content: `Search error: ${error.response?.data?.message || error.message}. Please check your API key.`,
+      }]);
+    } finally {
+      setIsLoading(false);
+      inputRef.current?.focus();
+    }
+  }, [isLoading]);
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    const query = input.trim();
+    if (!query) return;
+    setInput('');
+    if (!showChat && heroRef.current) {
+      window.scrollTo({ top: heroRef.current.offsetHeight, behavior: 'smooth' });
+      await new Promise(r => setTimeout(r, 600));
+    }
+    runSearch(query);
+  }, [input, showChat, runSearch]);
+
+  const handleSuggest = useCallback((s: string) => {
+    if (!showChat && heroRef.current) {
+      window.scrollTo({ top: heroRef.current.offsetHeight, behavior: 'smooth' });
+      setTimeout(() => runSearch(s), 650);
+    } else {
+      runSearch(s);
+    }
+  }, [showChat, runSearch]);
+
   return (
     <div className="app">
       <div ref={heroRef} className="hero-wrapper">
-        <div className="hero-sticky"><HeroSection scrollProgress={scrollProgress} /></div>
+        <div className="hero-sticky">
+          <HeroSection scrollProgress={scrollProgress} />
+        </div>
       </div>
-      <div className={`chat-wrapper ${showChat ? 'visible' : ''}`}><ChatSection /></div>
+      <div className={`chat-wrapper ${showChat ? 'visible' : ''}`}>
+        <ChatMessages messages={messages} onSuggest={handleSuggest} />
+      </div>
+      <form onSubmit={handleSubmit} className="chat-input-form">
+        <div className="input-wrapper">
+          <input ref={inputRef} type="text" value={input} onChange={e => setInput(e.target.value)}
+            placeholder="Search anything..." className="chat-input" disabled={isLoading} />
+          <button type="submit" className={`send-button ${isLoading ? 'loading' : ''}`} disabled={isLoading || !input.trim()}>
+            {isLoading ? <div className="spinner" /> : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </button>
+        </div>
+        <p className="input-hint">Powered by Tavily Search API · Real-time web results</p>
+      </form>
     </div>
   );
 }
