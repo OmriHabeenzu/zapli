@@ -5,16 +5,16 @@ A single-page web app featuring a scroll-triggered space animation that transiti
 ## Animation Theme
 
 **The Universe of Knowledge** — As you scroll, you journey through space:
-- **Phase 1 (0-25%)**: Title reveals against a starfield with twinkling stars and nebula glow
-- **Phase 2 (20-50%)**: A solar system materialises — a planet with rings, orbiting moons, and data streams spinning around it
-- **Phase 3 (45-80%)**: Transition prompt appears, guiding the user toward the search interface
-- **Transition (60-85%)**: Smooth fade from dark space into the chat interface
+- **Phase 1 (0–25%)**: Hero title reveals against a twinkling starfield with nebula glow — words slide in from opposite directions
+- **Phase 2 (20–50%)**: A solar system materialises — a planet with rings, three orbiting moons, and data streams rotating around it
+- **Phase 3 (45–80%)**: Transition prompt appears, guiding the user toward the search interface
+- **Transition (60–65%)**: Dark space fades out and the chat interface slides up smoothly
 
 ## Tech Stack
 
-- **React** with TypeScript
-- **Tavily Search API** for real-time web search
-- **CSS animations** (no external animation libraries — pure CSS keyframes + scroll-driven transforms)
+- **React 19** with TypeScript
+- **Tavily Search API** — real-time web search (no mock data)
+- **CSS animations** — pure CSS keyframes + scroll-driven inline transforms, no animation libraries
 - **Axios** for API requests
 
 ## Setup
@@ -30,8 +30,8 @@ cd zapli
 npm install
 ```
 
-3. Create `.env.local` file:
-```bash
+3. Create a `.env.local` file in the project root:
+```
 REACT_APP_TAVILY_API_KEY=your_tavily_api_key_here
 ```
 Get a free API key at [tavily.com](https://tavily.com)
@@ -52,14 +52,13 @@ npm run build
 
 ## What I'd Improve With More Time
 
-- **Scroll animation**: Add more phases — black hole effect, warp speed transition
-- **Chat**: Add conversation history with context, streaming responses
-- **Performance**: Use Intersection Observer instead of scroll events for better performance
-- **Search**: Add image results, news filtering, date range
-- **UI**: Add keyboard shortcuts, search suggestions, copy to clipboard
-- **Mobile**: Full touch gesture support for the hero animation
+- **Animation**: Add a warp-speed / black hole phase as the final scroll transition
+- **Streaming**: Stream search results token-by-token instead of showing all at once
+- **Backend proxy**: Move the API key server-side so it's never exposed to the client
+- **Context**: Keep conversation history so follow-up questions reference previous results
+- **Performance**: Replace scroll event listener with IntersectionObserver + CSS scroll-driven animations
+- **Search**: Add image results, news tab, date range filter
 - **Testing**: Unit tests for search logic, E2E tests with Cypress
-- **Backend proxy**: Move API key to server-side to protect it properly
 
 ## Author
 
