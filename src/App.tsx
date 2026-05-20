@@ -44,8 +44,10 @@ const HeroSection: React.FC<{ scrollProgress: number }> = ({ scrollProgress }) =
       </div>
       <div className="nebula" style={{ opacity: phase1 * 0.6, transform: `scale(${0.8 + phase1 * 0.4})` }} />
       <div className="hero-content">
+        <div className="hero-tag" style={{ opacity: Math.max(0.8 - scrollProgress * 2, 0) }}>
+          {'// Exploring the universe of knowledge'}
+        </div>
         <div className="phase-1" style={{ opacity: Math.min(phase1 * 2, 1), transform: `translateY(${(1 - phase1) * 40}px)` }}>
-          <div className="hero-tag">{'// Exploring the universe of knowledge'}</div>
           <h1 className="hero-title">
             <span style={{ opacity: phase1, transform: `translateX(${(1 - phase1) * -60}px)`, display: 'block' }}>Search</span>
             <span style={{ opacity: phase1, transform: `translateX(${(1 - phase1) * 60}px)`, display: 'block' }}>Beyond</span>

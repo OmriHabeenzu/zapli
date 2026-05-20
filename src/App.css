@@ -73,7 +73,12 @@
   font-size: 13px;
   color: var(--cyan);
   letter-spacing: 2px;
-  opacity: 0.8;
+  animation: heroTagIn 0.9s ease-out both;
+}
+
+@keyframes heroTagIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 0.8; transform: translateY(0); }
 }
 
 .hero-title {
@@ -510,8 +515,18 @@
 }
 
 /* RESPONSIVE */
+@media (max-width: 768px) {
+  .hero-content { gap: 24px; }
+  .nebula { width: 340px; height: 340px; }
+  .orbit-system { transform: scale(0.72); }
+}
+
 @media (max-width: 600px) {
   .hero-title { font-size: 52px; }
-  .orbit-system { width: 200px; height: 200px; }
+  .hero-content { gap: 16px; }
+  .nebula { width: 260px; height: 260px; }
+  .orbit-system { transform: scale(0.6); }
   .chat-section { padding: 24px 16px 110px; }
+  .message-content { max-width: 92%; }
+  .result-card { padding: 10px; }
 }
