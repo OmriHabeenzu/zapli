@@ -207,7 +207,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
     document.documentElement.scrollTop = 0;
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
