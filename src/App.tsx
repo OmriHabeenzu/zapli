@@ -45,7 +45,7 @@ const HeroSection: React.FC<{ scrollProgress: number }> = ({ scrollProgress }) =
       <div className="nebula" style={{ opacity: phase1 * 0.6, transform: `scale(${0.8 + phase1 * 0.4})` }} />
       <div className="hero-content">
         <div className="phase-1" style={{ opacity: Math.min(phase1 * 2, 1), transform: `translateY(${(1 - phase1) * 40}px)` }}>
-          <div className="hero-tag">// Exploring the universe of knowledge</div>
+          <div className="hero-tag">{'// Exploring the universe of knowledge'}</div>
           <h1 className="hero-title">
             <span style={{ opacity: phase1, transform: `translateX(${(1 - phase1) * -60}px)`, display: 'block' }}>Search</span>
             <span style={{ opacity: phase1, transform: `translateX(${(1 - phase1) * 60}px)`, display: 'block' }}>Beyond</span>
@@ -150,7 +150,7 @@ const ChatSection: React.FC = () => {
                   <p className="message-text">{msg.content}</p>
                   {msg.results && msg.results.length > 0 && (
                     <div className="search-results">
-                      <div className="results-label"><span className="mono">// {msg.results.length} sources found</span></div>
+                      <div className="results-label"><span className="mono">{'// '}{msg.results.length} sources found</span></div>
                       {msg.results.map((result, i) => (
                         <a key={i} href={result.url} target="_blank" rel="noopener noreferrer" className="result-card">
                           <div className="result-num">{i + 1}</div>
